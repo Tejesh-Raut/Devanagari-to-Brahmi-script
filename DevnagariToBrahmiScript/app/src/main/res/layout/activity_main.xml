@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@drawable/background">
+
+        <ScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <RelativeLayout
+                    android:id="@+id/DB"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    tools:layout_editor_absoluteX="8dp"
+                    tools:layout_editor_absoluteY="8dp"
+                    tools:ignore="MissingConstraints">
+
+                    <TextView
+                        android:id="@+id/textViewDB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/convert_from_devanagari_to_brahmi"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textColor="@android:color/black"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/devanagari"
+                        android:layout_width="match_parent"
+                        android:layout_height="137dp"
+                        android:layout_below="@+id/textViewDB"
+                        android:ems="15"
+                        android:hint="@string/text_in_devanagari"
+                        android:inputType="textMultiLine"
+                        android:text="" />
+
+                    <Button
+                        android:id="@+id/buttonDB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/devanagari"
+                        android:text="@string/convert" />
+
+                    <TextView
+                        android:id="@+id/textViewDBResult"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/buttonDB"
+                        android:text="@string/result"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textColor="@android:color/black"
+                        android:textSize="24sp" />
+
+                    <EditText
+                        android:id="@+id/outputDB"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/buttonDB"
+                        android:layout_toEndOf="@+id/textViewDBResult"
+                        android:inputType=""
+                        android:singleLine="false"
+                        android:textAppearance="@android:style/TextAppearance.Material.Display1" />
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:id="@+id/BD"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/DB"
+                    android:layout_marginTop="10dp"
+                    tools:layout_editor_absoluteX="8dp"
+                    tools:layout_editor_absoluteY="8dp"
+                    tools:ignore="MissingConstraints">
+
+                    <TextView
+                        android:id="@+id/textViewBD"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="@string/convert_from_brahmi_to_devanagari"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textColor="@android:color/black"
+                        android:textSize="24sp"
+                        android:textStyle="bold" />
+
+                    <EditText
+                        android:id="@+id/brahmi"
+                        android:layout_width="match_parent"
+                        android:layout_height="137dp"
+                        android:layout_below="@+id/textViewBD"
+                        android:ems="15"
+                        android:hint="@string/text_in_brahmi"
+                        android:inputType="textMultiLine"
+                        android:text="" />
+
+                    <Button
+                        android:id="@+id/buttonBD"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/brahmi"
+                        android:text="@string/convert" />
+
+                    <TextView
+                        android:id="@+id/textViewBDResult"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/buttonBD"
+                        android:text="@string/result"
+                        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+                        android:textColor="@android:color/black"
+                        android:textSize="24sp"/>
+
+                    <EditText
+                        android:id="@+id/outputBD"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_below="@+id/buttonBD"
+                        android:layout_toEndOf="@+id/textViewBDResult"
+                        android:singleLine="false"
+                        android:textAppearance="@android:style/TextAppearance.Material.Display1"
+                        android:inputType="" />
+
+                </RelativeLayout>
+
+                <TextView
+                    android:id="@+id/about_brahmi"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/BD"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/about_brahmi"
+                    android:textSize="18sp" />
+
+                <ImageView
+                    android:id="@+id/image_brahmi_letter_ka"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:adjustViewBounds="true"
+                    android:layout_below="@+id/about_brahmi"
+                    app:srcCompat="@drawable/brahmi_letter_ka" />
+
+                <TextView
+                    android:id="@+id/ashokan_brahmi_pillar_edict"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:layout_below="@+id/image_brahmi_letter_ka"
+                    android:layout_marginTop="10dp"
+                    android:background="@drawable/ashokan_brahmi_pillar_edict"
+                    android:text="@string/ashokan_brahmi_pillar_edict"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/references"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/ashokan_brahmi_pillar_edict"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/references"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/footer"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@+id/references"
+                    android:layout_marginTop="10dp"
+                    android:text="@string/footer"
+                    android:textSize="18sp" />
+            </RelativeLayout>
+        </ScrollView>
+
+    </RelativeLayout>
+
+</android.support.constraint.ConstraintLayout>
