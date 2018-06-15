@@ -21,4 +21,4 @@ Brahmi script is one of the oldest writing systems used in Ancient India and pre
 Example of a Brahmi text:
 ![Asoka's edicts](Images/1.png)
 
-© All Rights Reserved | Designed by Tejesh Raut
+© All Rights Reserved | Designed by [Tejesh Raut](https://tejesh-raut.github.io/)
