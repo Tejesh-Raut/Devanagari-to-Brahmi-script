@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">Brahmi Script</string>
+    <string name="convert">Convert</string>
+    <string name="text_in_devanagari">Enter text in Devanagari script here</string>
+    <string name="convert_from_devanagari_to_brahmi">Devanagari to Brahmi</string>
+    <string name="result">Result: &#160; &#160; &#160; </string>
+    <string name="text_in_brahmi">Enter text in Brahmi script here</string>
+    <string name="convert_from_brahmi_to_devanagari">Brahmi to Devanagari</string>
+    <string name="about_brahmi">Brahmi script is one of the oldest writing systems used in Ancient India and present South and Central Asia. It was in use from 7th century BCE to 5th century CE. It came into existence in the form of stone inscriptions during the reign of Asoka, in 4th - 3rd century B.C. Most of the modern day indic scripts are derived from the Brahmi script. It is very closely related to the Devanagari script which is used widely today and may be considered as its modern form. This tool helps in converting from Devanagari to Brahmi and vice versa.</string>
+    <string name="references">References: \n
+				\t <a href="http://www.unicode.org/charts/PDF/U11000.pdf">http://www.unicode.org/charts/PDF/U11000.pdf</a> \n
+				\t <a href="http://www.unicode.org/charts/PDF/U0900.pdf">http://www.unicode.org/charts/PDF/U0900.pdf</a> \n
+				\t <a href="https://www.google.com/get/noto/#sans-brah">NotoSansBrahmi-Regular.ttf font</a> \n
+                \t <a href="https://en.wikipedia.org/wiki/Brahmi_script">Brahmi script - Wikipedia</a> \n
+	</string>
+    <string name="footer">&#x00A9; All Rights Reserved | Designed by <a target="_blank" href="https://tejesh-raut.github.io/">Tejesh Raut</a></string>
+    <string name="ashokan_brahmi_pillar_edict">Ashokan Brahmi Pillar Edict</string>
+</resources>
