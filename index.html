@@ -1,6 +1,14 @@
 <!doctype html>
 <html>
 <style>
+@font-face {
+  font-family: 'NotoSansBrahmi-Regular';
+  src: URL('Fonts/NotoSansBrahmi-Regular.ttf') format('truetype');
+}
+@font-face{
+	font-family: 'NotoSansDevanagari-Regular';
+	src: URL('Fonts/NotoSansDevanagari-Regular.ttf')format('truetype');
+}
 input[type=text], select {
 	font-size: 20px;
     width: 50%;
@@ -577,18 +585,18 @@ div {
 	<div>
 		<h3>Convert from Devanagari(Hindi) script to Brahmi script</h3>
 		<br>
-		<input type="text" id="Devanagari" name="Devanagari" placeholder="Text in Devanagari script" required="">
+		<input type="text" id="Devanagari" name="Devanagari" placeholder="Text in Devanagari script" required="" style="font-family: NotoSansDevanagari-Regular;">
 		<button onclick="DevanagariToBrahmi()">Convert</button> &nbsp &nbsp
 		<!-- <input id="Output1"> -->
-		<span id="Output1" style="font-size: 30px; color: brown;"></span>
+		<span id="Output1" style="font-size: 30px; color: brown; font-family: NotoSansBrahmi-Regular;"></span>
 	</div>
 	<div>
 		<h3>Convert from Brahmi script to Devanagari(Hindi) script</h3>
 		<br>
-		<input type="text" id="Brahmi" name="Brahmi" placeholder="Text in Brahmi script" required="">
+		<input type="text" id="Brahmi" name="Brahmi" placeholder="Text in Brahmi script" required="" style="font-family: NotoSansBrahmi-Regular;">
 		<button onclick="BrahmiToDevanagari()">Convert</button> &nbsp &nbsp
 		<!-- <input id="Output2"> -->
-		<span id="Output2" style="font-size: 30px; color: brown;"></span>
+		<span id="Output2" style="font-size: 30px; color: brown; font-family: NotoSansDevanagari-Regular"></span>
 	</div>
 	<br>
 	<br>
