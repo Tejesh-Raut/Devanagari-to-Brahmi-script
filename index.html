@@ -52,6 +52,9 @@ div {
 			for (i = 0; i < a.length; i++) {
 				var n = a.codePointAt(i);
 				switch(n){
+					case 0x902:
+						b += "&#x11001";
+						break;
 					case 0x905: //A
 						b += "&#x11005";
 						break;
@@ -284,6 +287,10 @@ div {
 			for (i=0; i<a.length; i++){
 				var n = a.codePointAt(i);
 				switch(n){
+					case 0x11001:
+						b += "&#x902";
+						i++;
+						break;
 					case 0x11005:
 						b += "&#x00905";
 						i++;
