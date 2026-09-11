@@ -1,0 +1,5 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Disallow:
+
+Sitemap: https://tejesh-raut.github.io/Devanagari-to-Brahmi-script/sitemap.xml

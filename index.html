@@ -1,0 +1,886 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="Convert text between Devanagari and Brahmi script, with optional English typing (transliteration).">
+  <meta name="theme-color" content="#f4f5f7" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#211913" media="(prefers-color-scheme: dark)">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="Brahmi">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="format-detection" content="telephone=no">
+
+  <!-- Search engine crawling / ownership -->
+  <meta name="google-site-verification" content="dpvuGrxcQSwZRrAg3RHWK0WBCE-BKTJwN8VGdPDU-gs">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://tejesh-raut.github.io/Devanagari-to-Brahmi-script/">
+  <link rel="sitemap" type="application/xml" href="sitemap.xml">
+
+  <!-- Open Graph / social sharing -->
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Devanagari ↔ Brahmi Converter">
+  <meta property="og:description" content="Convert text between Devanagari and the ancient Brahmi script, with optional English typing (transliteration).">
+  <meta property="og:url" content="https://tejesh-raut.github.io/Devanagari-to-Brahmi-script/">
+  <meta property="og:image" content="https://tejesh-raut.github.io/Devanagari-to-Brahmi-script/assets/asoka-edicts.jpg">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" type="image/png" sizes="16x16" href="icons/favicon-16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="48x48" href="icons/favicon-48.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <title>Devanagari &harr; Brahmi Converter</title>
+
+  <style>
+    /* ---- Web fonts (bundled in the repo under Fonts/) ---- */
+    @font-face {
+      font-family: 'NotoSansBrahmi';
+      src: url('Fonts/NotoSansBrahmi-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'NotoSansDevanagari';
+      src: url('Fonts/NotoSansDevanagari-Regular.ttf') format('truetype');
+      font-display: swap;
+    }
+
+    /* ---- Theme tokens: aged parchment & ink ---- */
+    :root {
+      --bg: #f4f5f7;             /* neutral light grey (no tint) */
+      --card: #ffffff;           /* white */
+      --text: #26201a;           /* near-neutral dark ink */
+      --muted: #6b6b6b;          /* neutral grey */
+      --border: #e2e4e8;         /* neutral border */
+      --accent: #9c4a24;         /* terracotta / burnt sienna */
+      --accent-hover: #83381a;
+      --brahmi: #7b3f00;         /* ochre-brown for Brahmi glyphs */
+      --warn-bg: #f2e3bd;
+      --warn-border: #c79a3f;
+      --warn-text: #6d4a12;
+      --shadow: 0 1px 2px rgba(74,48,20,.18), 0 2px 8px rgba(74,48,20,.10);
+      --serif: 'Iowan Old Style', 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, 'Times New Roman', serif;
+    }
+    :root[data-theme="dark"] {
+      --bg: #211913;             /* dark leather / dim museum */
+      --card: #2e241a;
+      --text: #ede0c6;           /* parchment text */
+      --muted: #b3a17f;
+      --border: #4c3c28;
+      --accent: #cf7b3f;         /* warm ochre, brighter on dark */
+      --accent-hover: #e08b4c;
+      --brahmi: #e6a865;
+      --warn-bg: #3a2c14;
+      --warn-border: #a9762a;
+      --warn-text: #f0c48a;
+      --shadow: 0 1px 3px rgba(0,0,0,.5);
+    }
+
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-tap-highlight-color: transparent;
+      background-color: var(--bg);
+    }
+    .wrap {
+      max-width: 900px; margin: 0 auto;
+      padding: 16px;
+      padding-left: max(16px, env(safe-area-inset-left));
+      padding-right: max(16px, env(safe-area-inset-right));
+    }
+
+    header { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin: 12px 0 4px; }
+    header h1 { font-family: var(--serif); font-size: 1.7rem; letter-spacing: .3px; margin: 0; flex: 1; }
+    .subtitle { font-family: var(--serif); font-style: italic; color: var(--muted); margin: 0 0 20px; }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      margin-bottom: 18px;
+    }
+
+    /* ---- Direction control ---- */
+    .direction {
+      display: flex; align-items: center; justify-content: center;
+      gap: 10px; flex-wrap: wrap; margin-bottom: 14px;
+    }
+    .seg { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .seg button { border: none; background: transparent; color: var(--text);
+      padding: 8px 14px; cursor: pointer; font-size: .95rem; }
+    .seg button[aria-pressed="true"] { background: var(--accent); color: #fff; }
+
+    /* ---- IO panels ---- */
+    .io { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 720px) { .io { grid-template-columns: 1fr 1fr; } }
+    .panel label { display: block; font-weight: 600; margin-bottom: 6px; font-size: .9rem; }
+    textarea, .output {
+      width: 100%; min-height: 150px; padding: 12px 14px;
+      border: 1px solid var(--border); border-radius: 8px;
+      background: var(--card); color: var(--text);
+      font-size: var(--io-size, 24px); resize: vertical;
+    }
+    .output { white-space: pre-wrap; word-break: break-word; overflow-wrap: anywhere; margin: 0; }
+    .lang-dev { font-family: 'NotoSansDevanagari', system-ui, sans-serif; }
+    .lang-brahmi { font-family: 'NotoSansBrahmi', system-ui, sans-serif; color: var(--brahmi); }
+
+    .row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+    .row.between { justify-content: space-between; }
+    .count { color: var(--muted); font-size: .85rem; }
+
+    button.btn, a.btn {
+      border: 1px solid var(--border); background: var(--card); color: var(--text);
+      padding: 8px 14px; border-radius: 8px; cursor: pointer; font-size: .9rem;
+      text-decoration: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      min-height: 40px; touch-action: manipulation; -webkit-user-select: none; user-select: none;
+    }
+    button.btn:hover, a.btn:hover { border-color: var(--accent); }
+    button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+    button.primary:hover { background: var(--accent-hover); }
+    .icon-btn { padding: 8px 12px; line-height: 1; }
+
+    .warn {
+      margin-top: 12px; padding: 10px 12px; border-radius: 8px;
+      background: var(--warn-bg); border: 1px solid var(--warn-border); color: var(--warn-text);
+      font-size: .9rem;
+    }
+    .warn[hidden] { display: none; }
+
+    /* ---- Transliteration (English typing) ---- */
+    .input-tools {
+      display: flex; gap: 8px 12px; align-items: center; flex-wrap: wrap;
+      margin-bottom: 8px; padding: 8px 10px;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+    }
+    .input-tools[hidden] { display: none; }
+    .input-tools .tl-toggle {
+      font-size: .9rem; color: var(--text); display: inline-flex; align-items: center;
+      gap: 8px; font-weight: 600; cursor: pointer; padding: 4px 6px; border-radius: 6px;
+    }
+    .input-tools .tl-toggle input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+    .input-tools select {
+      font-size: .9rem; padding: 6px 8px; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--card); color: var(--text);
+    }
+    .translit-hint { font-size: .8rem; color: var(--muted); font-weight: 400; flex-basis: 100%; }
+    .chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+    .chips:empty { display: none; }
+    .chip {
+      border: 1px solid var(--border); background: var(--card); color: var(--text);
+      border-radius: 16px; padding: 5px 12px; cursor: pointer;
+      font-family: 'NotoSansDevanagari', system-ui, sans-serif; font-size: 1.05rem;
+      min-height: 36px; touch-action: manipulation;
+    }
+    .chip:hover { border-color: var(--accent); }
+    .chip.alt { color: var(--muted); }
+
+    /* ---- Options ---- */
+    .convert-row { margin-top: 16px; }
+    #convert { margin-left: auto; }
+    .options { display: flex; gap: 18px; flex-wrap: wrap; align-items: center; }
+    .options label { font-size: .9rem; color: var(--muted); display: inline-flex; align-items: center; gap: 8px; }
+    input[type="range"], input[type="checkbox"] { accent-color: var(--accent); vertical-align: middle; }
+
+    /* ---- Reference chart ---- */
+    details summary { font-family: var(--serif); font-size: 1.1rem; cursor: pointer; font-weight: 700; padding: 4px 0; }
+    .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+    table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: .95rem; }
+    th, td { border: 1px solid var(--border); padding: 6px 10px; text-align: center; }
+    th { background: var(--bg); }
+    td.dev { font-family: 'NotoSansDevanagari', system-ui, sans-serif; font-size: 1.3rem; }
+    td.bra { font-family: 'NotoSansBrahmi', system-ui, sans-serif; font-size: 1.5rem; color: var(--brahmi); }
+    .cat-head td { background: var(--bg); font-weight: 700; text-align: left; }
+
+    .about { color: var(--muted); font-size: .95rem; }
+    .about a { color: var(--accent); }
+    .about strong { font-family: var(--serif); color: var(--text); font-size: 1.02rem; }
+
+    /* ---- Figures / images ---- */
+    figure { margin: 14px 0; }
+    figure img {
+      width: 100%; height: auto; display: block;
+      border: 1px solid var(--border); border-radius: 8px; background: #fff;
+    }
+    figcaption { font-size: .82rem; color: var(--muted); margin-top: 6px; }
+    .figrow { display: grid; grid-template-columns: 1fr; gap: 14px; }
+    @media (min-width: 640px) { .figrow { grid-template-columns: 3fr 2fr; align-items: start; } }
+
+    footer { text-align: center; color: var(--muted); font-size: .85rem; padding: 16px 0 28px; }
+    footer a { color: var(--accent); }
+
+    /* ---- Toast ---- */
+    #toast {
+      position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px);
+      background: #222; color: #fff; padding: 10px 16px; border-radius: 8px;
+      opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; font-size: .9rem;
+    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    /* ---- Mobile / small screens ---- */
+    @media (max-width: 560px) {
+      .wrap { padding-top: 12px; }
+      header h1 { font-size: 1.25rem; }
+      .subtitle { font-size: .9rem; margin-bottom: 14px; }
+      .card { padding: 14px; border-radius: 10px; }
+
+      /* Direction toggle spans full width, each option shares the row */
+      .direction { gap: 8px; }
+      .seg { flex: 1; }
+      .seg button { flex: 1; padding: 10px 6px; font-size: .82rem; }
+
+      /* Action buttons grow to fill the row for easy tapping */
+      .panel .row .btn { flex: 1 1 auto; }
+      textarea, .output { min-height: 120px; }
+
+      /* Convert becomes a full-width primary action */
+      .convert-row { flex-direction: column; align-items: stretch; }
+      .options { justify-content: space-between; width: 100%; }
+      #convert { margin-left: 0; width: 100%; }
+
+      table { font-size: .9rem; }
+      th, td { padding: 6px 8px; }
+    }
+
+    @media (hover: none) {
+      /* On touch devices, keep hover styles from "sticking" after tap */
+      button.btn:hover, a.btn:hover { border-color: var(--border); }
+      button.primary:hover { background: var(--accent); }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <h1>Devanagari &harr; Brahmi</h1>
+      <button class="btn" id="install" hidden>⬇ Install</button>
+      <button class="btn icon-btn" id="themeToggle" title="Toggle dark mode" aria-label="Toggle dark mode">🌓</button>
+    </header>
+    <p class="subtitle">Convert text between the modern Devanagari script and the ancient Brahmi script, with optional English typing (transliteration).</p>
+
+    <!-- Converter -->
+    <section class="card">
+      <div class="direction">
+        <div class="seg" role="group" aria-label="Conversion direction">
+          <button id="dirD2B" aria-pressed="true">Devanagari → Brahmi</button>
+          <button id="dirB2D" aria-pressed="false">Brahmi → Devanagari</button>
+        </div>
+        <button class="btn icon-btn" id="swap" title="Swap direction and text" aria-label="Swap">⇄</button>
+      </div>
+
+      <div class="io">
+        <div class="panel">
+          <label id="inLabel" for="input">Input (Devanagari)</label>
+          <div class="input-tools" id="translitControls" hidden>
+            <label class="tl-toggle"><input type="checkbox" id="translit"> ⌨ Type in English (transliterate)</label>
+            <select id="translitLang" aria-label="Transliteration language" title="Transliteration language">
+              <option value="hi-t-i0-und">Hindi</option>
+              <option value="mr-t-i0-und">Marathi</option>
+              <option value="sa-t-i0-und">Sanskrit</option>
+              <option value="ne-t-i0-und">Nepali</option>
+            </select>
+            <span class="translit-hint" id="translitHint"></span>
+          </div>
+          <textarea id="input" class="lang-dev" spellcheck="false"
+                    placeholder="Type or paste text here…" autocomplete="off"></textarea>
+          <div class="chips" id="chips" aria-label="Transliteration suggestions"></div>
+          <div class="row between">
+            <span class="count" id="inCount">0 characters</span>
+            <div class="row">
+              <button class="btn" id="example">Example</button>
+              <button class="btn" id="clear">Clear</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <label id="outLabel" for="output">Output (Brahmi)</label>
+          <pre id="output" class="output lang-brahmi" aria-live="polite" tabindex="0"></pre>
+          <div class="row between">
+            <span class="count" id="outCount">0 characters</span>
+            <div class="row">
+              <button class="btn" id="copy">Copy</button>
+              <button class="btn" id="download">Download</button>
+              <button class="btn" id="share">Share link</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="warn" id="warn" hidden></div>
+      <div class="warn" id="fontWarn" hidden></div>
+
+      <div class="row convert-row">
+        <div class="options">
+          <label>Text size
+            <input type="range" id="size" min="18" max="48" value="24">
+          </label>
+          <label><input type="checkbox" id="live" checked> Live conversion</label>
+        </div>
+        <button class="btn primary" id="convert">Convert</button>
+      </div>
+    </section>
+
+    <!-- Reference chart -->
+    <section class="card">
+      <details>
+        <summary>Character reference chart</summary>
+        <figure>
+          <img src="assets/brahmi-vowel-signs.jpg" width="700" height="421" loading="lazy"
+               alt="The Brahmi consonant KA shown with different vowel signs: ka, ki, ku, ke, ko and more, alongside their Devanagari equivalents.">
+          <figcaption>A consonant (here क <em>ka</em>) combines with vowel signs to form <em>ka, ki, ku, ke, ko…</em> — the same way in Brahmi and Devanagari.</figcaption>
+        </figure>
+        <div class="table-wrap">
+          <table id="chart">
+            <thead>
+              <tr><th>Devanagari</th><th>Brahmi</th><th>Sound / name</th></tr>
+            </thead>
+            <tbody id="chartBody"></tbody>
+          </table>
+        </div>
+      </details>
+    </section>
+
+    <!-- About -->
+    <section class="card about">
+      <p><strong>About Brahmi.</strong> Brahmi is one of the oldest writing systems of Ancient India, in use from roughly the 3rd century BCE (the edicts of Ashoka) to the 5th century CE. Most modern Indic scripts, including Devanagari, descend from it.</p>
+      <div class="figrow">
+        <figure>
+          <img src="assets/asoka-edicts.jpg" width="1000" height="548" loading="lazy"
+               alt="An edict of Ashoka shown in three scripts: the original Brahmi, its Devanagari equivalent, and an English translation.">
+          <figcaption>An edict of Ashoka in Brahmi (left), Devanagari (right), and English — the very conversion this tool performs.</figcaption>
+        </figure>
+        <figure>
+          <img src="assets/brahmi-inscription.jpg" width="760" height="594" loading="lazy"
+               alt="Photograph of the Girnar rock edicts, an ancient inscription carved in Brahmi script.">
+          <figcaption>The Girnar rock edicts — Brahmi carved in stone (3rd century BCE).</figcaption>
+        </figure>
+      </div>
+      <p><strong>Fonts.</strong> If Brahmi shows as boxes (☐) or question marks, install the
+        <a href="Fonts/NotoSansBrahmi-Regular.ttf">Noto Sans Brahmi</a> font, or view on a device that has it.
+        The web app bundles it, but some browsers restrict local font loading.</p>
+      <p><strong>Typing Devanagari.</strong> Turn on “⌨ Type in English” above to type phonetically
+        (e.g. <code>namaste</code> → नमस्ते), powered by
+        <a href="https://www.google.co.in/inputtools/try/" target="_blank" rel="noopener">Google Input Tools</a>
+        — no Devanagari keyboard needed. Suggestions appear as you type; tap one, or press Space to
+        accept the first. This option needs an internet connection. You can also use your device's Hindi keyboard.</p>
+      <p><strong>Older scripts.</strong> Interested in even older writing? Explore the
+        <a href="https://tejesh-raut.github.io/indus-valley-script/" target="_blank" rel="noopener">Indus Valley script</a>,
+        the undeciphered symbols of the Bronze Age Indus civilization.</p>
+      <p><strong>References:</strong>
+        <a href="https://www.unicode.org/charts/PDF/U11000.pdf" target="_blank" rel="noopener">Brahmi (U+11000)</a> ·
+        <a href="https://www.unicode.org/charts/PDF/U0900.pdf" target="_blank" rel="noopener">Devanagari (U+0900)</a> ·
+        <a href="https://en.wikipedia.org/wiki/Brahmi_script" target="_blank" rel="noopener">Wikipedia</a>
+      </p>
+    </section>
+
+    <footer>
+      &copy; <span id="year"></span> Designed by
+      <a href="https://tejesh-raut.github.io/" target="_blank" rel="noopener">Tejesh Raut</a> ·
+      <a href="https://github.com/Tejesh-Raut/Devanagari-to-Brahmi-script" target="_blank" rel="noopener">Source on GitHub</a>
+    </footer>
+  </div>
+
+  <div id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    /* -------------------------------------------------------------
+       Single source of truth: Devanagari -> Brahmi mapping.
+       Each entry: [devCodePoint, brahmiCodePoint, sound/name, category]
+       The reverse map is derived automatically, so the two
+       directions can never drift out of sync.
+    ------------------------------------------------------------- */
+    var TABLE = [
+      // Signs
+      [0x0901, 0x11000, 'ṁ̐  candrabindu', 'Signs'],
+      [0x0902, 0x11001, 'ṃ  anusvara',    'Signs'],
+      [0x0903, 0x11002, 'ḥ  visarga',     'Signs'],
+      // Independent vowels
+      [0x0905, 0x11005, 'a',  'Independent vowels'],
+      [0x0906, 0x11006, 'ā',  'Independent vowels'],
+      [0x0907, 0x11007, 'i',  'Independent vowels'],
+      [0x0908, 0x11008, 'ī',  'Independent vowels'],
+      [0x0909, 0x11009, 'u',  'Independent vowels'],
+      [0x090A, 0x1100A, 'ū',  'Independent vowels'],
+      [0x090B, 0x1100B, 'ṛ',  'Independent vowels'],
+      [0x090C, 0x1100D, 'ḷ',  'Independent vowels'],
+      [0x090F, 0x1100F, 'e',  'Independent vowels'],
+      [0x0910, 0x11010, 'ai', 'Independent vowels'],
+      [0x0913, 0x11011, 'o',  'Independent vowels'],
+      [0x0914, 0x11012, 'au', 'Independent vowels'],
+      // Consonants
+      [0x0915, 0x11013, 'ka',  'Consonants'],
+      [0x0916, 0x11014, 'kha', 'Consonants'],
+      [0x0917, 0x11015, 'ga',  'Consonants'],
+      [0x0918, 0x11016, 'gha', 'Consonants'],
+      [0x0919, 0x11017, 'ṅa',  'Consonants'],
+      [0x091A, 0x11018, 'ca',  'Consonants'],
+      [0x091B, 0x11019, 'cha', 'Consonants'],
+      [0x091C, 0x1101A, 'ja',  'Consonants'],
+      [0x091D, 0x1101B, 'jha', 'Consonants'],
+      [0x091E, 0x1101C, 'ña',  'Consonants'],
+      [0x091F, 0x1101D, 'ṭa',  'Consonants'],
+      [0x0920, 0x1101E, 'ṭha', 'Consonants'],
+      [0x0921, 0x1101F, 'ḍa',  'Consonants'],
+      [0x0922, 0x11020, 'ḍha', 'Consonants'],
+      [0x0923, 0x11021, 'ṇa',  'Consonants'],
+      [0x0924, 0x11022, 'ta',  'Consonants'],
+      [0x0925, 0x11023, 'tha', 'Consonants'],
+      [0x0926, 0x11024, 'da',  'Consonants'],
+      [0x0927, 0x11025, 'dha', 'Consonants'],
+      [0x0928, 0x11026, 'na',  'Consonants'],
+      [0x092A, 0x11027, 'pa',  'Consonants'],
+      [0x092B, 0x11028, 'pha', 'Consonants'],
+      [0x092C, 0x11029, 'ba',  'Consonants'],
+      [0x092D, 0x1102A, 'bha', 'Consonants'],
+      [0x092E, 0x1102B, 'ma',  'Consonants'],
+      [0x092F, 0x1102C, 'ya',  'Consonants'],
+      [0x0930, 0x1102D, 'ra',  'Consonants'],
+      [0x0932, 0x1102E, 'la',  'Consonants'],
+      [0x0933, 0x11034, 'ḷa',  'Consonants'],
+      [0x0935, 0x1102F, 'va',  'Consonants'],
+      [0x0936, 0x11030, 'śa',  'Consonants'],
+      [0x0937, 0x11031, 'ṣa',  'Consonants'],
+      [0x0938, 0x11032, 'sa',  'Consonants'],
+      [0x0939, 0x11033, 'ha',  'Consonants'],
+      // Dependent vowel signs (matras)
+      [0x093E, 0x11038, 'ā  (sign)',  'Vowel signs'],
+      [0x093F, 0x1103A, 'i  (sign)',  'Vowel signs'],
+      [0x0940, 0x1103B, 'ī  (sign)',  'Vowel signs'],
+      [0x0941, 0x1103C, 'u  (sign)',  'Vowel signs'],
+      [0x0942, 0x1103D, 'ū  (sign)',  'Vowel signs'],
+      [0x0943, 0x1103E, 'ṛ  (sign)',  'Vowel signs'],
+      [0x0944, 0x1103F, 'ṝ  (sign)',  'Vowel signs'],
+      [0x0962, 0x11040, 'ḷ  (sign)',  'Vowel signs'],
+      [0x0963, 0x11041, 'ḹ  (sign)',  'Vowel signs'],
+      [0x0947, 0x11042, 'e  (sign)',  'Vowel signs'],
+      [0x0948, 0x11043, 'ai (sign)',  'Vowel signs'],
+      [0x094B, 0x11044, 'o  (sign)',  'Vowel signs'],
+      [0x094C, 0x11045, 'au (sign)',  'Vowel signs'],
+      [0x094D, 0x11046, 'virama',     'Vowel signs'],
+      // Punctuation
+      [0x0964, 0x11047, '।  danda',        'Punctuation'],
+      [0x0965, 0x11048, '॥  double danda', 'Punctuation'],
+      // Digits
+      [0x0966, 0x11066, '0', 'Digits'],
+      [0x0967, 0x11067, '1', 'Digits'],
+      [0x0968, 0x11068, '2', 'Digits'],
+      [0x0969, 0x11069, '3', 'Digits'],
+      [0x096A, 0x1106A, '4', 'Digits'],
+      [0x096B, 0x1106B, '5', 'Digits'],
+      [0x096C, 0x1106C, '6', 'Digits'],
+      [0x096D, 0x1106D, '7', 'Digits'],
+      [0x096E, 0x1106E, '8', 'Digits'],
+      [0x096F, 0x1106F, '9', 'Digits']
+    ];
+
+    var devToBrahmi = new Map();
+    var brahmiToDev = new Map();
+    TABLE.forEach(function (e) {
+      devToBrahmi.set(e[0], e[1]);
+      brahmiToDev.set(e[1], e[0]);
+    });
+
+    /* Core conversion. Iterating with for..of walks by code point,
+       so supplementary-plane Brahmi (surrogate pairs) is handled
+       correctly with no manual index juggling. */
+    function convert(text, dir) {
+      var map = dir === 'd2b' ? devToBrahmi : brahmiToDev;
+      var out = '';
+      var unmapped = new Set();
+      for (var ch of text) {
+        var cp = ch.codePointAt(0);
+        if (map.has(cp)) {
+          out += String.fromCodePoint(map.get(cp));
+        } else {
+          out += ch; // pass through untouched
+          if (dir === 'd2b' && cp >= 0x0900 && cp <= 0x097F) unmapped.add(ch);
+          if (dir === 'b2d' && cp >= 0x11000 && cp <= 0x1107F) unmapped.add(ch);
+        }
+      }
+      return { out: out, unmapped: Array.from(unmapped) };
+    }
+
+    /* -------------------- DOM & state -------------------- */
+    var $ = function (id) { return document.getElementById(id); };
+    var input = $('input'), output = $('output'), warn = $('warn');
+    var inLabel = $('inLabel'), outLabel = $('outLabel');
+    var inCount = $('inCount'), outCount = $('outCount');
+    var dir = 'd2b';
+
+    /* Transliteration (English typing) state & DOM */
+    var translitControls = $('translitControls');
+    var translitCb = $('translit');
+    var translitLang = $('translitLang');
+    var translitHint = $('translitHint');
+    var chipsEl = $('chips');
+    var translitOn = false;
+    var previewTimer = null;   // debounce for live suggestions
+    var previewSeq = 0;        // guards against stale async responses
+    var TL_HELP = 'Type in English — tap a suggestion, or press Space to accept the first.';
+
+    // The run of Latin letters ending at the caret (the word being typed).
+    function currentLatinToken() {
+      var value = input.value, caret = input.selectionStart, start = caret;
+      while (start > 0 && /[A-Za-z]/.test(value[start - 1])) start--;
+      return { token: value.slice(start, caret), start: start, end: caret };
+    }
+
+    function countLabel(s) {
+      var chars = Array.from(s).length;
+      return chars + (chars === 1 ? ' character' : ' characters');
+    }
+
+    function applyDirectionUI() {
+      var d2b = dir === 'd2b';
+      $('dirD2B').setAttribute('aria-pressed', String(d2b));
+      $('dirB2D').setAttribute('aria-pressed', String(!d2b));
+      inLabel.textContent = 'Input (' + (d2b ? 'Devanagari' : 'Brahmi') + ')';
+      outLabel.textContent = 'Output (' + (d2b ? 'Brahmi' : 'Devanagari') + ')';
+      input.className = d2b ? 'lang-dev' : 'lang-brahmi';
+      output.className = 'output ' + (d2b ? 'lang-brahmi' : 'lang-dev');
+      // English typing only makes sense when the input is Devanagari.
+      translitControls.hidden = !d2b;
+      if (!d2b && translitOn) setTranslit(false);
+    }
+
+    /* -------------------- Transliteration (Google Input Tools) -------------------- */
+    function setTranslit(on) {
+      translitOn = !!on && dir === 'd2b';
+      translitCb.checked = translitOn;
+      input.placeholder = translitOn
+        ? "Type in English, e.g. 'namaste' — suggestions appear as you type"
+        : 'Type or paste text here…';
+      chipsEl.innerHTML = '';
+      clearTimeout(previewTimer);
+      previewSeq++;
+      translitHint.textContent = translitOn ? TL_HELP : '';
+    }
+
+    // Calls Google Input Tools; returns a promise for an array of candidates.
+    function transliterate(word) {
+      var url = 'https://inputtools.google.com/request?itc=' +
+        encodeURIComponent(translitLang.value) +
+        '&num=8&cp=0&cs=1&ie=utf-8&oe=utf-8&text=' + encodeURIComponent(word);
+      return fetch(url).then(function (r) { return r.json(); }).then(function (data) {
+        if (data && data[0] === 'SUCCESS' && data[1] && data[1][0] && data[1][0][1]) {
+          return data[1][0][1];
+        }
+        return [];
+      });
+    }
+
+    // Replace the Latin span [range.start,range.end] with `chosen` Devanagari,
+    // ensuring a trailing space, and move the caret after it.
+    function commitWord(range, chosen) {
+      var v = input.value;
+      var before = v.slice(0, range.start), after = v.slice(range.end);
+      var sep = (after.charAt(0) === ' ' || after.charAt(0) === '\n' || after === '') ? '' : ' ';
+      if (after === '') sep = ' ';
+      input.value = before + chosen + sep + after;
+      var caret = (before + chosen + sep).length;
+      input.setSelectionRange(caret, caret);
+      chipsEl.innerHTML = '';
+      translitHint.textContent = TL_HELP;
+      run();
+      input.focus();
+    }
+
+    function showChips(cands, range) {
+      chipsEl.innerHTML = '';
+      if (!translitOn || !cands || !cands.length) return;
+      cands.forEach(function (c, idx) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'chip' + (idx === 0 ? '' : ' alt');
+        b.textContent = c;
+        // mousedown would blur the textarea before click; prevent that.
+        b.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+        b.addEventListener('click', function () {
+          // Re-locate the current Latin word in case the caret moved.
+          var tok = currentLatinToken();
+          var r = (input.value.slice(range.start, range.end) === range.token)
+            ? range : { start: tok.start, end: tok.end, token: tok.token };
+          commitWord(r, c);
+        });
+        chipsEl.appendChild(b);
+      });
+    }
+
+    // Live suggestions while typing (debounced), IME-style.
+    function schedulePreview() {
+      if (!translitOn) return;
+      clearTimeout(previewTimer);
+      previewTimer = setTimeout(doPreview, 200);
+    }
+    function doPreview() {
+      if (!translitOn) return;
+      var tok = currentLatinToken();
+      if (!tok.token) { chipsEl.innerHTML = ''; translitHint.textContent = TL_HELP; return; }
+      var seq = ++previewSeq;
+      var range = { start: tok.start, end: tok.end, token: tok.token };
+      transliterate(tok.token).then(function (cands) {
+        if (seq !== previewSeq || !translitOn) return;               // stale
+        if (input.value.slice(range.start, range.end) !== range.token) return;
+        showChips(cands, range);
+        translitHint.textContent = TL_HELP;
+      }).catch(function () {
+        if (seq !== previewSeq) return;
+        translitHint.textContent = 'Transliteration needs internet — you can still type Devanagari directly.';
+      });
+    }
+
+    // Commit the current word on Space / Enter (accepts the first suggestion).
+    function handleTranslitKey(caret, sep) {
+      var value = input.value, start = caret;
+      while (start > 0 && /[A-Za-z]/.test(value[start - 1])) start--;
+      var token = value.slice(start, caret);
+      if (!token) return false; // nothing to transliterate — let default happen
+      previewSeq++;             // invalidate any pending preview
+      clearTimeout(previewTimer);
+      transliterate(token).then(function (cands) {
+        var chosen = cands.length ? cands[0] : token;
+        var before = value.slice(0, start), after = value.slice(caret);
+        input.value = before + chosen + sep + after;
+        var nc = (before + chosen + sep).length;
+        input.setSelectionRange(nc, nc);
+        chipsEl.innerHTML = '';
+        translitHint.textContent = TL_HELP;
+        run();
+      }).catch(function () {
+        var before = value.slice(0, start), after = value.slice(caret);
+        input.value = before + token + sep + after;
+        var nc = (before + token + sep).length;
+        input.setSelectionRange(nc, nc);
+        translitHint.textContent = 'Transliteration needs internet — kept your English text.';
+        run();
+      });
+      return true;
+    }
+
+    // Transliterate any trailing Latin word (used before Convert / conversion).
+    function flushTrailingWord() {
+      if (!translitOn) return Promise.resolve();
+      var value = input.value, caret = value.length, start = caret;
+      while (start > 0 && /[A-Za-z]/.test(value[start - 1])) start--;
+      var token = value.slice(start, caret);
+      if (!token) return Promise.resolve();
+      previewSeq++;
+      return transliterate(token).then(function (cands) {
+        var chosen = cands.length ? cands[0] : token;
+        input.value = value.slice(0, start) + chosen;
+        chipsEl.innerHTML = '';
+      }).catch(function () {});
+    }
+
+    function run() {
+      var res = convert(input.value, dir);
+      output.textContent = res.out;
+      inCount.textContent = countLabel(input.value);
+      outCount.textContent = countLabel(res.out);
+      if (res.unmapped.length) {
+        warn.hidden = false;
+        warn.textContent = 'No equivalent for: ' + res.unmapped.join('  ') +
+          '  — these were left unchanged.';
+      } else {
+        warn.hidden = true;
+      }
+    }
+
+    /* -------------------- Events -------------------- */
+    input.addEventListener('input', function () {
+      if ($('live').checked) run(); else inCount.textContent = countLabel(input.value);
+      schedulePreview();
+    });
+    $('convert').addEventListener('click', function () { flushTrailingWord().then(run); });
+
+    // English-typing: live suggestions + Space/Enter to accept.
+    translitCb.addEventListener('change', function () { setTranslit(this.checked); input.focus(); });
+    translitLang.addEventListener('change', function () { if (translitOn) doPreview(); input.focus(); });
+    input.addEventListener('focus', function () { if (translitOn && !chipsEl.children.length) translitHint.textContent = TL_HELP; });
+    input.addEventListener('keydown', function (e) {
+      if (!translitOn) return;
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      if (input.selectionStart !== input.selectionEnd) return; // active selection: default
+      var sep = e.key === 'Enter' ? '\n' : ' ';
+      if (handleTranslitKey(input.selectionStart, sep)) e.preventDefault();
+    });
+
+    $('dirD2B').addEventListener('click', function () { dir = 'd2b'; applyDirectionUI(); run(); });
+    $('dirB2D').addEventListener('click', function () { dir = 'b2d'; applyDirectionUI(); run(); });
+
+    $('swap').addEventListener('click', function () {
+      var current = output.textContent;
+      dir = dir === 'd2b' ? 'b2d' : 'd2b';
+      applyDirectionUI();
+      input.value = current;
+      run();
+    });
+
+    $('clear').addEventListener('click', function () { input.value = ''; run(); input.focus(); });
+
+    $('example').addEventListener('click', function () {
+      dir = 'd2b'; applyDirectionUI();
+      input.value = 'धर्म । अशोक । सत्यमेव जयते ॥';
+      run();
+    });
+
+    $('copy').addEventListener('click', function () {
+      var text = output.textContent;
+      if (!text) return;
+      navigator.clipboard && navigator.clipboard.writeText
+        ? navigator.clipboard.writeText(text).then(function () { toast('Copied'); }, fallbackCopy)
+        : fallbackCopy();
+      function fallbackCopy() {
+        var ta = document.createElement('textarea');
+        ta.value = text; document.body.appendChild(ta); ta.select();
+        try { document.execCommand('copy'); toast('Copied'); } catch (e) { toast('Copy failed'); }
+        document.body.removeChild(ta);
+      }
+    });
+
+    $('download').addEventListener('click', function () {
+      var text = output.textContent;
+      if (!text) { toast('Nothing to download'); return; }
+      var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+      var a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = (dir === 'd2b' ? 'brahmi' : 'devanagari') + '.txt';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    });
+
+    $('share').addEventListener('click', function () {
+      var params = new URLSearchParams();
+      params.set('dir', dir);
+      params.set('t', input.value);
+      var url = location.origin + location.pathname + '#' + params.toString();
+      navigator.clipboard && navigator.clipboard.writeText
+        ? navigator.clipboard.writeText(url).then(function () { toast('Share link copied'); })
+        : (location.hash = params.toString(), toast('Link in address bar'));
+    });
+
+    $('size').addEventListener('input', function () {
+      document.documentElement.style.setProperty('--io-size', this.value + 'px');
+    });
+
+    /* Theme */
+    var themeToggle = $('themeToggle');
+    function setTheme(t) {
+      document.documentElement.setAttribute('data-theme', t);
+      try { localStorage.setItem('theme', t); } catch (e) {}
+    }
+    themeToggle.addEventListener('click', function () {
+      var cur = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+      setTheme(cur === 'dark' ? 'light' : 'dark');
+    });
+
+    /* Toast */
+    var toastEl = $('toast'), toastTimer;
+    function toast(msg) {
+      toastEl.textContent = msg; toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 1600);
+    }
+
+    /* Build reference chart */
+    (function buildChart() {
+      var body = $('chartBody'), lastCat = '';
+      TABLE.forEach(function (e) {
+        if (e[3] !== lastCat) {
+          lastCat = e[3];
+          var h = document.createElement('tr');
+          h.className = 'cat-head';
+          h.innerHTML = '<td colspan="3">' + lastCat + '</td>';
+          body.appendChild(h);
+        }
+        var tr = document.createElement('tr');
+        var dev = document.createElement('td'); dev.className = 'dev'; dev.textContent = String.fromCodePoint(e[0]);
+        var bra = document.createElement('td'); bra.className = 'bra'; bra.textContent = String.fromCodePoint(e[1]);
+        var snd = document.createElement('td'); snd.textContent = e[2];
+        tr.appendChild(dev); tr.appendChild(bra); tr.appendChild(snd);
+        body.appendChild(tr);
+      });
+    })();
+
+    /* Font availability hint. document.fonts.check() is false until a font is
+       actually used (lazy loading), so we actively load it first to avoid a
+       false "font missing" warning on page load. */
+    if (document.fonts && document.fonts.load) {
+      var showFontWarn = function () {
+        var fw = $('fontWarn');
+        fw.hidden = false;
+        fw.textContent = 'The Brahmi font did not load — Brahmi text may show as boxes. ' +
+          'Install Noto Sans Brahmi (link in the About section) for correct display.';
+      };
+      document.fonts.load('24px NotoSansBrahmi', '\uD804\uDC13').then(function (faces) {
+        if (!faces || !faces.length) showFontWarn();
+      }).catch(showFontWarn);
+    }
+
+    /* -------------------- Init -------------------- */
+    (function init() {
+      $('year').textContent = new Date().getFullYear();
+      try {
+        var saved = localStorage.getItem('theme');
+        if (saved) { document.documentElement.setAttribute('data-theme', saved); }
+        else if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+          document.documentElement.setAttribute('data-theme', 'dark');
+        }
+      } catch (e) {}
+
+      // Restore from share link if present
+      if (location.hash.length > 1) {
+        var params = new URLSearchParams(location.hash.slice(1));
+        if (params.get('dir') === 'b2d') dir = 'b2d';
+        if (params.get('t')) input.value = params.get('t');
+      }
+      applyDirectionUI();
+      run();
+      input.focus();
+    })();
+
+    /* -------------------- PWA: service worker + install -------------------- */
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('sw.js').catch(function (err) {
+          console.warn('Service worker registration failed:', err);
+        });
+      });
+    }
+
+    // Custom install button (Chromium fires beforeinstallprompt).
+    var deferredPrompt = null;
+    var installBtn = $('install');
+    window.addEventListener('beforeinstallprompt', function (e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.hidden = false;
+    });
+    installBtn.addEventListener('click', function () {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(function () {
+        deferredPrompt = null;
+        installBtn.hidden = true;
+      });
+    });
+    window.addEventListener('appinstalled', function () {
+      installBtn.hidden = true;
+      deferredPrompt = null;
+      toast('App installed');
+    });
+  })();
+  </script>
+</body>
+</html>
